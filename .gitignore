@@ -3,6 +3,7 @@ src/bower_components/
 
 data/config.php
 
+uploads/backup/*
 uploads/big/*
 uploads/import/*
 uploads/medium/*

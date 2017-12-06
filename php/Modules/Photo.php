@@ -46,6 +46,7 @@ final class Photo {
 		// Check permissions
 		if (hasPermissions(LYCHEE_UPLOADS)===false||
 			hasPermissions(LYCHEE_UPLOADS_BIG)===false||
+			hasPermissions(LYCHEE_UPLOADS_BACKUP)===false||
 			hasPermissions(LYCHEE_UPLOADS_THUMB)===false) {
 				Log::error(Database::get(), __METHOD__, __LINE__, 'An upload-folder is missing or not readable and writable');
 				if ($returnOnError===true) return false;
@@ -143,9 +144,10 @@ final class Photo {
 		$id = generateID();
 
 		// Set paths
-		$tmp_name   = $file['tmp_name'];
-		$photo_name = md5($id) . $extension;
-		$path       = LYCHEE_UPLOADS_BIG . $photo_name;
+		$tmp_name 	 = $file['tmp_name'];
+		$photo_name  = md5($id) . $extension;
+		$path        = LYCHEE_UPLOADS_BIG . $photo_name;
+		$backup_path = LYCHEE_UPLOADS_BACKUP . $photo_name;
 
 		// Calculate checksum
 		$checksum = sha1_file($tmp_name);
@@ -179,12 +181,17 @@ final class Photo {
 
 			// Import if not uploaded via web
 			if (!is_uploaded_file($tmp_name)) {
-				if (!@copy($tmp_name, $path)) {
+				if (!@copy($tmp_name, $path) && !@copy($tmp_name, $backup_path)) {
 					Log::error(Database::get(), __METHOD__, __LINE__, 'Could not copy photo to uploads');
 					if ($returnOnError===true) return false;
 					Response::error('Could not copy photo to uploads!');
 				} else @unlink($tmp_name);
 			} else {
+				if (!@copy($tmp_name, $backup_path)) {
+					Log::error(Database::get(), __METHOD__, __LINE__, 'Could not copy photo to uploads/backup/');
+					if ($returnOnError===true) return false;
+					Response::error('Could not copy photo to uploads/backup/!');
+				}
 				if (!@move_uploaded_file($tmp_name, $path)) {
 					Log::error(Database::get(), __METHOD__, __LINE__, 'Could not move photo to uploads');
 					if ($returnOnError===true) return false;
