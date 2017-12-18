@@ -26,7 +26,8 @@ function search($term) {
 	$query = "SELECT id, title, tags, public, star, album, thumbUrl, takestamp, url, medium
 			  FROM ?
 			  WHERE title LIKE '%?%'
-			  OR description LIKE '%?%'"
+			  OR description LIKE '%?%'
+			  OR CAST(FROM_UNIXTIME(takestamp) as date) LIKE '%?%'"
 			;
 
 	foreach ($tags_format as $key => $value) {
@@ -39,7 +40,7 @@ function search($term) {
 
 	$query .= ")";
 
-	$query  = Database::prepare(Database::get(), $query, array(LYCHEE_TABLE_PHOTOS, $term, $term));
+	$query  = Database::prepare(Database::get(), $query, array(LYCHEE_TABLE_PHOTOS, $term, $term, $term));
 
 	$result = Database::execute(Database::get(), $query, __METHOD__, __LINE__);
 
